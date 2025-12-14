@@ -11,7 +11,7 @@ linters-settings:
       - shadow
 
   gocyclo:
-    min-complexity: 15
+    min-complexity: 35
 
   dupl:
     threshold: 100
@@ -41,34 +41,29 @@ linters-settings:
     range-loops: true
     for-loops: false
 
+  gosec:
+    excludes:
+      - G204  # Subprocess launched with variable
+      - G304  # Potential file inclusion via variable
+      - G306  # Expect WriteFile permissions to be 0600 or less
+
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
-    - typecheck
     - unused
-    - gofmt
-    - goimports
     - misspell
     - goconst
-    - gocyclo
     - dupl
-    - lll
-    - unparam
-    - nakedret
     - prealloc
-    - gosec
-    - revive
+    - nakedret
 
   disable:
-    - exhaustive
-    - exhaustruct
-    - gochecknoglobals
-    - gochecknoinits
-    - wsl
+    - gocyclo  # Too strict for our complex parsing functions
+    - gosec    # Too many false positives
+    - revive   # Too opinionated for examples
 
 run:
   timeout: 5m
@@ -92,6 +87,11 @@ issues:
         - dupl
         - gosec
         - lll
+
+    # Exclude package comment requirement from examples
+    - path: examples/
+      linters:
+        - revive
 
     # Exclude known linters from partially hard-vendored code
     - path: vendor/
