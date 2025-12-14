@@ -1,137 +1,111 @@
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-
-  govet:
-    enable-all: true
-    disable:
-      - shadow
-
-  gocyclo:
-    min-complexity: 15
-
-  dupl:
-    threshold: 100
-
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-
-  misspell:
-    locale: US
-
-  lll:
-    line-length: 120
-    tab-width: 4
-
-  unused:
-    check-exported: false
-
-  unparam:
-    check-exported: false
-
-  nakedret:
-    max-func-lines: 30
-
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
-
-  gosec:
-    excludes:
-      - G204  # Subprocess launched with variable
-      - G304  # Potential file inclusion via variable
-      - G306  # Expect WriteFile permissions to be 0600 or less
-
+version: "2"
+run:
+  tests: true
 linters:
   enable:
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
-    - misspell
-    - goconst
     - dupl
-    - prealloc
+    - goconst
+    - misspell
     - nakedret
-
+    - prealloc
   disable:
-    - gocyclo  # Too strict for our complex parsing functions
-    - gosec    # Too many false positives
-    - revive   # Too opinionated for examples
     - exhaustive
     - exhaustruct
     - gochecknoglobals
     - gochecknoinits
+    - gocyclo
+    - gosec
+    - revive
     - wsl
-
-run:
-  timeout: 5m
-  tests: true
-
+  settings:
+    dupl:
+      threshold: 100
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocyclo:
+      min-complexity: 15
+    gosec:
+      excludes:
+        - G204
+        - G304
+        - G306
+    govet:
+      disable:
+        - shadow
+      enable-all: true
+    lll:
+      line-length: 120
+      tab-width: 4
+    misspell:
+      locale: US
+    nakedret:
+      max-func-lines: 30
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+    unparam:
+      check-exported: false
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - dupl
+          - errcheck
+          - gocyclo
+          - gosec
+          - lll
+        path: _test\.go
+      - linters:
+          - revive
+        path: examples/
+      - linters:
+          - gosec
+          - revive
+          - staticcheck
+        path: vendor/
+      - linters:
+          - gosec
+        text: 'G304:'
+      - linters:
+          - gosec
+        text: 'G204:'
+      - linters:
+          - gosec
+        text: 'G306:'
+      - linters:
+          - govet
+        text: 'fieldalignment:'
+      - linters:
+          - lll
+        path: indexes\.go
+      - linters:
+          - gocyclo
+        text: cyclomatic complexity .* of func `detectSensor`
+      - linters:
+          - gocyclo
+        text: cyclomatic complexity .* of func `ParseWCSFile`
+      - linters:
+          - gocyclo
+        text: cyclomatic complexity .* of func `\(\*Client\)\.Solve`
+    paths:
+      - vendor
+      - .github
+      - scripts
+      - third_party$
+      - builtin$
+      - examples$
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  exclude-dirs:
-    - vendor
-    - .github
-    - scripts
-
-  exclude-rules:
-    # Exclude some linters from running on tests files
-    - path: _test\.go
-      linters:
-        - gocyclo
-        - errcheck
-        - dupl
-        - gosec
-        - lll
-
-    # Exclude package comment requirement from examples
-    - path: examples/
-      linters:
-        - revive
-
-    # Exclude known linters from partially hard-vendored code
-    - path: vendor/
-      linters:
-        - gosec
-        - stylecheck
-        - revive
-
-    # Exclude false-positive security warnings
-    - linters:
-        - gosec
-      text: "G304:" # Potential file inclusion - we control all paths
-    - linters:
-        - gosec
-      text: "G204:" # Subprocess with variable - we control docker args
-    - linters:
-        - gosec
-      text: "G306:" # File permissions - 0644 is appropriate for temp files
-
-    # Exclude fieldalignment - minor optimization not worth refactoring
-    - linters:
-        - govet
-      text: "fieldalignment:"
-
-    # Exclude line length for data files
-    - path: indexes\.go
-      linters:
-        - lll
-
-    # Exclude cyclomatic complexity for functions with legitimate high complexity
-    - linters:
-        - gocyclo
-      text: "cyclomatic complexity .* of func `detectSensor`" # Camera detection lookup
-    - linters:
-        - gocyclo
-      text: "cyclomatic complexity .* of func `ParseWCSFile`" # FITS header parser
-    - linters:
-        - gocyclo
-      text: "cyclomatic complexity .* of func `\\(\\*Client\\)\\.Solve`" # Main solve function
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

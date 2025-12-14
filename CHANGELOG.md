@@ -1,18 +1,28 @@
 # Changelog
 
-## [1.0.0] - 2025-12-14
-
-### Changes
-
-- Release created from PR merge
-
-
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.1.0] - 2025-12-14
+
+### Changed
+- **Migrated golangci-lint from v1.64.8 to v2.7.2**
+  - Updated configuration to v2 format using official migration tool
+  - Config structure changes: `linters-settings` → `linters.settings`
+  - Exclusion rules: `issues.exclude-rules` → `linters.exclusions.rules`
+  - Exclusion paths: `issues.exclude-dirs` → `linters.exclusions.paths`
+  - GitHub Action updated from v4 to v7
+- Improved linter configuration with better exclusions for legitimate complexity
+
+### Fixed
+- Removed deprecated config options (`run.timeout`, `unused.check-exported`)
+- Updated timeout handling (now managed by GitHub Actions)
+
+## [1.0.0] - 2025-12-14
 
 ### Added
 - Docker setup documentation with execution mode comparison
@@ -47,5 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Timeout support for long-running solves
 - Output file collection (.wcs, .corr, .solved, etc.)
 
-[Unreleased]: https://github.com/DiarmuidKelly/Astrometry-Go-Client/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/DiarmuidKelly/Astrometry-Go-Client/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/DiarmuidKelly/Astrometry-Go-Client/compare/v1.0.0...v1.1.0
+[1.0.0]: https://github.com/DiarmuidKelly/Astrometry-Go-Client/compare/v0.1.0...v1.0.0
 [0.1.0]: https://github.com/DiarmuidKelly/Astrometry-Go-Client/releases/tag/v0.1.0
