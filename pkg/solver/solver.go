@@ -121,7 +121,11 @@ func (c *Client) Solve(ctx context.Context, imagePath string, opts *SolveOptions
 		return nil, fmt.Errorf("failed to create temp directory: %w", err)
 	}
 	if !opts.KeepTempFiles {
-		defer os.RemoveAll(tempDir)
+		defer func() {
+			if err := os.RemoveAll(tempDir); err != nil {
+				log.Printf("warning: failed to remove temp directory: %v", err)
+			}
+		}()
 	} else {
 		log.Printf("KeepTempFiles enabled: temp directory preserved at %s", tempDir)
 	}
@@ -129,7 +133,8 @@ func (c *Client) Solve(ctx context.Context, imagePath string, opts *SolveOptions
 	// Copy image to temp directory (solve-field writes output alongside input)
 	imageFilename := filepath.Base(absImagePath)
 	tempImagePath := filepath.Join(tempDir, imageFilename)
-	if err := copyFile(absImagePath, tempImagePath); err != nil {
+	err = copyFile(absImagePath, tempImagePath)
+	if err != nil {
 		return nil, fmt.Errorf("failed to copy image to temp directory: %w", err)
 	}
 
@@ -204,14 +209,18 @@ func (c *Client) SolveBytes(ctx context.Context, data []byte, format string, opt
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp file: %w", err)
 	}
-	defer os.Remove(tempFile.Name())
+	defer func() {
+		_ = os.Remove(tempFile.Name())
+	}()
 
 	// Write data
 	if _, err := tempFile.Write(data); err != nil {
-		tempFile.Close()
+		_ = tempFile.Close()
 		return nil, fmt.Errorf("failed to write image data: %w", err)
 	}
-	tempFile.Close()
+	if err := tempFile.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close temp file: %w", err)
+	}
 
 	// Solve using the temp file
 	return c.Solve(ctx, tempFile.Name(), opts)

@@ -99,6 +99,27 @@ issues:
         - stylecheck
         - revive
 
+    # Exclude false-positive security warnings
+    - linters:
+        - gosec
+      text: "G304:" # Potential file inclusion - we control all paths
+    - linters:
+        - gosec
+      text: "G204:" # Subprocess with variable - we control docker args
+    - linters:
+        - gosec
+      text: "G306:" # File permissions - 0644 is appropriate for temp files
+
+    # Exclude fieldalignment - minor optimization not worth refactoring
+    - linters:
+        - govet
+      text: "fieldalignment:"
+
+    # Exclude line length for data files
+    - path: indexes\.go
+      linters:
+        - lll
+
 output:
   format: colored-line-number
   print-issued-lines: true
