@@ -5,10 +5,14 @@
 ![Go Version](https://img.shields.io/github/go-mod/go-version/DiarmuidKelly/Astrometry-Go-Client)
 [![Go Report Card](https://goreportcard.com/badge/github.com/DiarmuidKelly/Astrometry-Go-Client)](https://goreportcard.com/report/github.com/DiarmuidKelly/Astrometry-Go-Client)
 
-A Go library for astrometric plate-solving using the [dm90/astrometry](https://hub.docker.com/r/dm90/astrometry) Docker container. This library provides a clean, idiomatic Go interface to Astrometry.net without requiring direct modification of the container.
+**Offline astrometric plate-solving for Go** - Solve astronomical images locally without internet access using the [dm90/astrometry](https://hub.docker.com/r/dm90/astrometry) Docker container. Complete privacy and control over your data with no dependency on external services.
 
 ## Features
 
+- **100% Offline Operation** - No internet required after initial setup
+- **Complete Privacy** - Your images never leave your machine
+- **No Rate Limits** - Solve unlimited images without API quotas
+- **Fast Local Processing** - No network latency or upload time
 - Simple, type-safe API for plate-solving astronomical images
 - Docker-based integration (no complex installation required)
 - Support for scale hints, downsampling, and RA/Dec position hints
@@ -18,12 +22,25 @@ A Go library for astrometric plate-solving using the [dm90/astrometry](https://h
 - CLI tool for quick command-line solving
 - Full test coverage
 
+## Why Offline?
+
+Unlike cloud-based plate-solving services, this library runs entirely on your local machine:
+
+- **Privacy First** - Your astrophotography images and location data stay private
+- **No Internet Required** - Work in remote locations, observatories, or anywhere offline
+- **Free & Unlimited** - No API keys, rate limits, or subscription fees
+- **Faster Processing** - No upload/download time, just local computation
+- **Full Control** - Customize solve parameters without service restrictions
+- **Self-Hosted** - Perfect for automated pipelines, observatories, and air-gapped systems
+
 ## Prerequisites
+
+**Note:** Internet is only required once during initial setup to download the Docker image and index files. After setup, the solver runs 100% offline.
 
 ### Required
 - **Go 1.21+**
-- **Docker** with the `dm90/astrometry` image pulled
-- **Astrometry.net index files** downloaded to a local directory
+- **Docker** with the `dm90/astrometry` image pulled (one-time download)
+- **Astrometry.net index files** downloaded to a local directory (one-time download)
 
 ### Quick Setup
 
