@@ -1,0 +1,14 @@
+# Code Owners for Astrometry-Go-Client
+#
+# These owners will be requested for review when someone opens a pull request.
+# Only code owners can approve and merge PRs when "Require review from Code Owners" is enabled.
+#
+# More info: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything in the repo
+* @DiarmuidKelly
+
+# Specific file ownership
+/pkg/solver/ @DiarmuidKelly
+/cmd/ @DiarmuidKelly
+/.github/ @DiarmuidKelly

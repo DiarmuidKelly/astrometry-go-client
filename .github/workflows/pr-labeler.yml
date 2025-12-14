@@ -1,0 +1,94 @@
+name: Auto Label PRs
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  label-pr:
+    name: Auto-label PR based on title
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Add labels based on PR title
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = context.payload.pull_request.title;
+            const currentLabels = context.payload.pull_request.labels.map(l => l.name);
+
+            // Define label mappings
+            const labelRules = [
+              { regex: /^\[MAJOR\]|^feat!:|BREAKING CHANGE/, labels: ['major', 'breaking-change'], color: 'd73a4a' },
+              { regex: /^\[MINOR\]|^feat(\(.+\))?:/, labels: ['minor', 'enhancement'], color: '0e8a16' },
+              { regex: /^\[PATCH\]|^fix(\(.+\))?:/, labels: ['patch', 'bug'], color: 'd876e3' },
+              { regex: /^\[SKIP\]/, labels: ['skip-release'], color: 'ffffff' },
+              { regex: /^docs(\(.+\))?:/, labels: ['documentation', 'skip-release'], color: '0075ca' },
+              { regex: /^chore(\(.+\))?:/, labels: ['maintenance', 'skip-release'], color: 'fef2c0' },
+              { regex: /^style(\(.+\))?:/, labels: ['style', 'skip-release'], color: 'f9d0c4' },
+              { regex: /^refactor(\(.+\))?:/, labels: ['refactor', 'patch'], color: 'fbca04' },
+              { regex: /^perf(\(.+\))?:/, labels: ['performance', 'patch'], color: '5319e7' },
+              { regex: /^test(\(.+\))?:/, labels: ['testing', 'skip-release'], color: 'bfdadc' },
+            ];
+
+            // Ensure all labels exist
+            const existingLabels = await github.rest.issues.listLabelsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const existingLabelNames = existingLabels.data.map(l => l.name);
+
+            for (const rule of labelRules) {
+              for (const labelName of rule.labels) {
+                if (!existingLabelNames.includes(labelName)) {
+                  try {
+                    await github.rest.issues.createLabel({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      name: labelName,
+                      color: rule.color,
+                      description: `Auto-generated label for ${labelName}`
+                    });
+                    core.info(`Created label: ${labelName}`);
+                  } catch (error) {
+                    core.warning(`Could not create label ${labelName}: ${error.message}`);
+                  }
+                }
+              }
+            }
+
+            // Determine which labels to add
+            let labelsToAdd = [];
+
+            for (const rule of labelRules) {
+              if (rule.regex.test(title)) {
+                labelsToAdd = labelsToAdd.concat(rule.labels);
+              }
+            }
+
+            // Remove duplicates
+            labelsToAdd = [...new Set(labelsToAdd)];
+
+            // Only update if labels changed
+            const labelsChanged = !labelsToAdd.every(l => currentLabels.includes(l)) ||
+                                  !currentLabels.every(l => labelsToAdd.includes(l));
+
+            if (labelsChanged && labelsToAdd.length > 0) {
+              await github.rest.issues.setLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: labelsToAdd
+              });
+
+              core.info(`Added labels: ${labelsToAdd.join(', ')}`);
+            } else if (labelsToAdd.length === 0) {
+              core.warning('No matching labels found for PR title');
+            } else {
+              core.info('Labels already up to date');
+            }

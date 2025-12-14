@@ -27,6 +27,16 @@ go.work.sum
 # env file
 .env
 
+# Build artifacts
+/astro-cli
+/cmd/astro-cli/astro-cli
+/bin/
+/dist/
+
+# Astrometry index files (large, user-specific)
+astrometry-data/
+test-images/
+
 # Editor/IDE
 # .idea/
 # .vscode/
