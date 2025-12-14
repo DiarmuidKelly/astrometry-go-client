@@ -5,6 +5,9 @@ linters-settings:
 
   govet:
     enable-all: true
+    settings:
+      shadow:
+        strict: true
 
   gocyclo:
     min-complexity: 15
@@ -58,16 +61,13 @@ linters:
     - prealloc
     - gosec
     - revive
-    - shadow
 
   disable:
     - exhaustive
     - exhaustruct
     - gochecknoglobals
     - gochecknoinits
-    - gomnd
     - wsl
-    - exportloopref
 
 run:
   timeout: 5m
