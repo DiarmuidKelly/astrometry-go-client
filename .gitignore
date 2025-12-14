@@ -28,7 +28,7 @@ go.work.sum
 .env
 
 # Build artifacts
-astro-cli
+/astro-cli
 /cmd/astro-cli/astro-cli
 /bin/
 /dist/
