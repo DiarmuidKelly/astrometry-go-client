@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1] - 2025-12-15
+
+### Changes
+
+- Release created from PR merge
+
+
 ## [1.3.0] - 2025-12-15
 
 ### Changes
