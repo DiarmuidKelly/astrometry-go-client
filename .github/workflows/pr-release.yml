@@ -117,15 +117,11 @@ jobs:
           # macOS arm64 (Apple Silicon)
           GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=${VERSION}" -o astro-cli-darwin-arm64 ./cmd/astro-cli
 
-          # Windows amd64
-          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=${VERSION}" -o astro-cli-windows-amd64.exe ./cmd/astro-cli
-
           # Create archives
           tar czf astro-cli-${VERSION}-linux-amd64.tar.gz astro-cli-linux-amd64
           tar czf astro-cli-${VERSION}-linux-arm64.tar.gz astro-cli-linux-arm64
           tar czf astro-cli-${VERSION}-darwin-amd64.tar.gz astro-cli-darwin-amd64
           tar czf astro-cli-${VERSION}-darwin-arm64.tar.gz astro-cli-darwin-arm64
-          zip astro-cli-${VERSION}-windows-amd64.zip astro-cli-windows-amd64.exe
 
       - name: Create GitHub Release
         if: steps.skip_check.outputs.skip == 'false'
