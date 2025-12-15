@@ -1,6 +1,7 @@
 package solver
 
 import (
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,8 +11,8 @@ import (
 func TestDefaultClientConfig(t *testing.T) {
 	config := DefaultClientConfig()
 
-	if config.DockerImage != "dm90/astrometry" {
-		t.Errorf("expected DockerImage to be 'dm90/astrometry', got '%s'", config.DockerImage)
+	if config.DockerImage != "diarmuidk/astrometry-dockerised-solver" {
+		t.Errorf("expected DockerImage to be 'diarmuidk/astrometry-dockerised-solver', got '%s'", config.DockerImage)
 	}
 
 	if config.Timeout.Minutes() != 5 {
@@ -37,7 +38,7 @@ func TestDefaultSolveOptions(t *testing.T) {
 
 func TestNewClient_MissingIndexPath(t *testing.T) {
 	config := &ClientConfig{
-		DockerImage: "dm90/astrometry",
+		DockerImage: "diarmuidk/astrometry-dockerised-solver",
 	}
 
 	_, err := NewClient(config)
@@ -83,7 +84,7 @@ func TestNewClient_Success(t *testing.T) {
 	}
 
 	// Check defaults were set
-	if client.config.DockerImage != "dm90/astrometry" {
+	if client.config.DockerImage != "diarmuidk/astrometry-dockerised-solver" {
 		t.Errorf("expected DockerImage to be set to default")
 	}
 
@@ -105,24 +106,24 @@ func TestParseWCSFile_Success(t *testing.T) {
 	wcsPath := filepath.Join(tempDir, "test.wcs")
 
 	// Create FITS format WCS content (80-character records)
+	// Values based on real IMG_2820.JPG solve (testdata/wcs.fits)
 	lines := []string{
 		"SIMPLE  =                    T / file does conform to FITS standard             ",
 		"BITPIX  =                    8 / number of bits per data pixel                  ",
 		"NAXIS   =                    0 / number of data axes                            ",
 		"EXTEND  =                    T / FITS dataset may contain extensions            ",
-		"CRPIX1  =            2048.5000 / Coordinate reference pixel                     ",
-		"CRPIX2  =            1534.5000 / Coordinate reference pixel                     ",
-		"CRVAL1  =      120.12345678901 / RA of reference point (deg)                    ",
-		"CRVAL2  =       45.98765432101 / Dec of reference point (deg)                   ",
-		"CD1_1   =  -0.0003055555555556 / Transformation matrix                          ",
-		"CD1_2   =   0.0000000000000000 / Transformation matrix                          ",
-		"CD2_1   =   0.0000000000000000 / Transformation matrix                          ",
-		"CD2_2   =   0.0003055555555556 / Transformation matrix                          ",
-		"CROTA2  =              15.5000 / Rotation angle (deg)                           ",
+		"CRPIX1  =          3000.000000 / X reference pixel (image center)               ",
+		"CRPIX2  =          2000.000000 / Y reference pixel (image center)               ",
+		"CRVAL1  =        83.4230000000 / RA of reference point (deg)                    ",
+		"CRVAL2  =        -5.8930000000 / Dec of reference point (deg)                   ",
+		"CD1_1   =  -0.0010995000000000 / Transformation matrix                          ",
+		"CD1_2   =   0.0004600000000000 / Transformation matrix (~22deg rotation)        ",
+		"CD2_1   =  -0.0004500000000000 / Transformation matrix                          ",
+		"CD2_2   =  -0.0011000000000000 / Transformation matrix                          ",
 		"CTYPE1  = 'RA---TAN'           / WCS projection type                            ",
 		"CTYPE2  = 'DEC--TAN'           / WCS projection type                            ",
-		"NAXIS1  =                 4096 / Image width                                    ",
-		"NAXIS2  =                 3068 / Image height                                   ",
+		"IMAGEW  =                 6000 / Image width                                    ",
+		"IMAGEH  =                 4000 / Image height                                   ",
 		"END                                                                             ",
 	}
 
@@ -148,22 +149,31 @@ func TestParseWCSFile_Success(t *testing.T) {
 	}
 
 	// Check parsed values
-	if result.RA != 120.12345678901 {
-		t.Errorf("expected RA to be 120.12345678901, got %.11f", result.RA)
+	// Reference pixel is at image center (3000, 2000) = (IMAGEW/2, IMAGEH/2)
+	// So CRVAL should equal field center (no transformation needed)
+	expectedRA := 83.423
+	expectedDec := -5.893
+
+	if math.Abs(result.RA-expectedRA) > 0.001 {
+		t.Errorf("expected RA to be approximately %.3f, got %.6f", expectedRA, result.RA)
 	}
 
-	if result.Dec != 45.98765432101 {
-		t.Errorf("expected Dec to be 45.98765432101, got %.11f", result.Dec)
+	if math.Abs(result.Dec-expectedDec) > 0.001 {
+		t.Errorf("expected Dec to be approximately %.3f, got %.6f", expectedDec, result.Dec)
 	}
 
-	// CD1_1 = -0.0003055555555556 deg/pixel = 1.1 arcsec/pixel (approx)
-	expectedPixelScale := 0.0003055555555556 * 3600.0
-	if result.PixelScale < expectedPixelScale*0.99 || result.PixelScale > expectedPixelScale*1.01 {
-		t.Errorf("expected PixelScale to be approximately %.2f, got %.2f", expectedPixelScale, result.PixelScale)
+	// Pixel scale from CD matrix: sqrt(CD1_1^2 + CD2_1^2) * 3600
+	// sqrt(0.0010995^2 + 0.00045^2) * 3600 ≈ 4.3 arcsec/pixel
+	expectedPixelScale := 4.3
+	if math.Abs(result.PixelScale-expectedPixelScale) > 0.2 {
+		t.Errorf("expected PixelScale to be approximately %.1f arcsec/px, got %.2f", expectedPixelScale, result.PixelScale)
 	}
 
-	if result.Rotation != 15.5 {
-		t.Errorf("expected Rotation to be 15.5, got %.1f", result.Rotation)
+	// Rotation from CD matrix: atan2(CD1_2, CD1_1) with CD1_2=0.00046, CD1_1=-0.0010995
+	// atan2(0.00046, -0.0010995) ≈ 2.76 rad ≈ 158°, so 180-158 ≈ 22°
+	expectedRotation := 22.0
+	if math.Abs(result.Rotation-expectedRotation) > 2.0 {
+		t.Errorf("expected Rotation to be approximately %.0f°, got %.1f°", expectedRotation, result.Rotation)
 	}
 
 	// Check WCS header map

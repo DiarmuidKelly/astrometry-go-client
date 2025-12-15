@@ -1,6 +1,6 @@
 services:
   astrometry-solver:
-    image: dm90/astrometry:latest
+    image: diarmuidk/astrometry-dockerised-solver:latest
     container_name: ${CONTAINER_NAME:-astrometry-solver}
     volumes:
       # Mount astrometry index files (read-only)

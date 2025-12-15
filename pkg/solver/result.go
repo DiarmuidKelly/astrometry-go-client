@@ -3,6 +3,7 @@ package solver
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -113,25 +114,129 @@ func ParseWCSFile(wcsPath string) (*Result, error) {
 
 		// Store in map
 		result.WCSHeader[key] = valuePart
+	}
 
-		// Extract key fields
-		switch key {
-		case "CRVAL1": // RA of reference point
-			if val, err := strconv.ParseFloat(valuePart, 64); err == nil {
-				result.RA = val
-			}
-		case "CRVAL2": // Dec of reference point
-			if val, err := strconv.ParseFloat(valuePart, 64); err == nil {
-				result.Dec = val
-			}
-		case "CD1_1", "CDELT1": // Pixel scale information
-			// CD1_1 is deg/pixel, convert to arcsec/pixel
-			if val, err := strconv.ParseFloat(valuePart, 64); err == nil {
-				result.PixelScale = abs(val) * 3600.0
-			}
-		case "CROTA2": // Rotation angle
-			if val, err := strconv.ParseFloat(valuePart, 64); err == nil {
-				result.Rotation = val
+	// Parse WCS transformation parameters
+	var crval1, crval2, crpix1, crpix2 float64
+	var cd11, cd12, cd21, cd22 float64
+	var imageW, imageH float64
+	var hasWCS bool
+
+	// Extract all WCS parameters
+	if val, ok := result.WCSHeader["CRVAL1"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			crval1 = v
+			hasWCS = true
+		}
+	}
+	if val, ok := result.WCSHeader["CRVAL2"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			crval2 = v
+		}
+	}
+	if val, ok := result.WCSHeader["CRPIX1"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			crpix1 = v
+		}
+	}
+	if val, ok := result.WCSHeader["CRPIX2"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			crpix2 = v
+		}
+	}
+	if val, ok := result.WCSHeader["CD1_1"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			cd11 = v
+		}
+	}
+	if val, ok := result.WCSHeader["CD1_2"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			cd12 = v
+		}
+	}
+	if val, ok := result.WCSHeader["CD2_1"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			cd21 = v
+		}
+	}
+	if val, ok := result.WCSHeader["CD2_2"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			cd22 = v
+		}
+	}
+
+	// Get image dimensions (prefer IMAGEW/IMAGEH, fallback to NAXIS1/NAXIS2)
+	if val, ok := result.WCSHeader["IMAGEW"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			imageW = v
+		}
+	} else if val, ok := result.WCSHeader["NAXIS1"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			imageW = v
+		}
+	}
+	if val, ok := result.WCSHeader["IMAGEH"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			imageH = v
+		}
+	} else if val, ok := result.WCSHeader["NAXIS2"]; ok {
+		if v, err := strconv.ParseFloat(val, 64); err == nil {
+			imageH = v
+		}
+	}
+
+	// Calculate field center coordinates using WCS transformation
+	// The reference pixel (CRPIX) has coordinates CRVAL at that pixel
+	// To get field center, transform from reference pixel to image center
+	if hasWCS && imageW > 0 && imageH > 0 {
+		// Image center in pixel coordinates
+		centerX := imageW / 2.0
+		centerY := imageH / 2.0
+
+		// Offset from reference pixel to center
+		dx := centerX - crpix1
+		dy := centerY - crpix2
+
+		// Apply CD matrix transformation to get sky coordinate offsets
+		dRA := cd11*dx + cd12*dy
+		dDec := cd21*dx + cd22*dy
+
+		// Calculate field center coordinates
+		result.RA = crval1 + dRA
+		result.Dec = crval2 + dDec
+
+		// Calculate pixel scale from CD matrix
+		// Pixel scale = sqrt(CD1_1^2 + CD2_1^2) in degrees/pixel
+		pixelScaleDeg := math.Sqrt(cd11*cd11 + cd21*cd21)
+		result.PixelScale = pixelScaleDeg * 3600.0 // Convert to arcsec/pixel
+
+		// Calculate rotation from CD matrix
+		// Position angle: how many degrees E of N the "up" direction points
+		// Formula: 180 - atan2(CD1_2, CD1_1) * 180/π
+		rotationRad := math.Atan2(cd12, cd11)
+		result.Rotation = 180.0 - (rotationRad * 180.0 / math.Pi)
+
+		// Normalize to 0-360 range
+		for result.Rotation < 0 {
+			result.Rotation += 360.0
+		}
+		for result.Rotation >= 360 {
+			result.Rotation -= 360.0
+		}
+	} else {
+		// Fallback: use CRVAL as field center if we can't calculate
+		result.RA = crval1
+		result.Dec = crval2
+
+		// Fallback pixel scale from CD1_1
+		if cd11 != 0 {
+			result.PixelScale = abs(cd11) * 3600.0
+		}
+
+		// Extract rotation angle if available
+		if val, ok := result.WCSHeader["CROTA2"]; ok {
+			if v, err := strconv.ParseFloat(val, 64); err == nil {
+				result.Rotation = v
 			}
 		}
 	}

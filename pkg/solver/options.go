@@ -1,18 +1,20 @@
 // Package solver provides a Go client for the Astrometry.net plate-solving service
-// via the dm90/astrometry Docker container.
+// via Docker containers (dm90/astrometry or ghcr.io/diarmuidkelly/astrometry-dockerised-solver).
 package solver
 
 import "time"
 
 const (
 	// DefaultDockerImage is the default Docker image used for plate-solving
-	DefaultDockerImage = "dm90/astrometry"
+	// Compatible images: "dm90/astrometry", "diarmuidk/astrometry-dockerised-solver", "ghcr.io/diarmuidkelly/astrometry-dockerised-solver"
+	DefaultDockerImage = "diarmuidk/astrometry-dockerised-solver"
 )
 
 // ClientConfig holds configuration for the Astrometry client.
 type ClientConfig struct {
 	// DockerImage specifies the Docker image to use for solving.
-	// Default: "dm90/astrometry"
+	// Compatible with dm90/astrometry, diarmuidk/astrometry-dockerised-solver, or ghcr.io/diarmuidkelly/astrometry-dockerised-solver
+	// Default: "diarmuidk/astrometry-dockerised-solver"
 	DockerImage string
 
 	// IndexPath is the host path to the astrometry index files.

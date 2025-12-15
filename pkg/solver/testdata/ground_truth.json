@@ -1,0 +1,28 @@
+{
+  "IMG_2820.JPG": {
+    "description": "Orion Nebula (M42) region - Canon EOS M50m2 MPO format",
+    "source": "astrometry.net web upload (authoritative)",
+        "camera": {
+      "lens_mm": 200,
+      "mount": "Canon EF",
+      "sensor": "APS-C",
+      "crop_factor": 1.6,
+      "effective_focal_length_mm": 320,
+      "notes": "EF lens on APS-C body via adapter"
+    },
+    "solution": {
+      "ra": 83.423,
+      "dec": -5.893,
+      "pixel_scale_arcsec_per_pixel": 3.96,
+      "rotation_degrees": 22.4,
+      "field_width_degrees": 6.6,
+      "field_height_degrees": 4.4
+    },
+    "tolerance": {
+      "position_arcsec": 10.0,
+      "pixel_scale_percent": 5.0,
+      "rotation_degrees": 2.0,
+      "field_size_percent": 5.0
+    }
+  }
+}

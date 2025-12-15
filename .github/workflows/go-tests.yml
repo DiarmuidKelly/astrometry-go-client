@@ -68,6 +68,34 @@ jobs:
         with:
           version: v2.7.2
 
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
+      - name: Pull Docker images
+        run: |
+          docker pull diarmuidk/astrometry-dockerised-solver:latest
+          docker pull ghcr.io/diarmuidkelly/astrometry-dockerised-solver:latest
+          docker pull dm90/astrometry:latest
+
+      - name: Run integration tests
+        run: make test-integration
+
   build:
     name: Build
     runs-on: ubuntu-latest

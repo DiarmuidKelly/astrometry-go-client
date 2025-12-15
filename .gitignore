@@ -37,6 +37,19 @@ go.work.sum
 astrometry-data/
 test-images/
 
+# Astrometry.net solver output files
+*.new
+*.solved
+*.wcs
+*.axy
+*.corr
+*.rdls
+*.match
+*.xyls
+
+# Test-generated converted images
+*-converted.jpg
+
 # Editor/IDE
 # .idea/
 # .vscode/

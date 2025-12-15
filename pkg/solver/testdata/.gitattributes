@@ -1,0 +1,10 @@
+# Git attributes for test data
+# Treat image files as binary
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.fits binary
+*.fit binary
+
+# JSON files are text
+*.json text

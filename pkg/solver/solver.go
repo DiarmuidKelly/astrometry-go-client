@@ -1,5 +1,5 @@
 // Package solver provides a Go client for the Astrometry.net plate-solving service
-// via the dm90/astrometry Docker container.
+// via Docker containers (diarmuidk/astrometry-dockerised-solver or dm90/astrometry).
 //
 // Plate-solving identifies the celestial coordinates and orientation of astronomical
 // images by matching star patterns against index files. This package wraps the
