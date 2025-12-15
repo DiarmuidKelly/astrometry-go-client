@@ -79,10 +79,6 @@ func TestNewClient_Success(t *testing.T) {
 		t.Fatalf("unexpected error creating client: %v", err)
 	}
 
-	if client == nil {
-		t.Fatal("expected client to be non-nil")
-	}
-
 	// Check defaults were set
 	if client.config.DockerImage != "diarmuidk/astrometry-dockerised-solver" {
 		t.Errorf("expected DockerImage to be set to default")

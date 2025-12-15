@@ -49,6 +49,7 @@ package solver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -165,35 +166,44 @@ func (c *Client) Solve(ctx context.Context, imagePath string, opts *SolveOptions
 	// Execute Docker command
 	startTime := time.Now()
 	cmd := exec.CommandContext(solveCtx, "docker", dockerArgs...)
-	output, err := cmd.CombinedOutput()
+	output, _ := cmd.CombinedOutput() //nolint:errcheck // Ignore exit code - we check for .wcs file existence instead
+	rawOutput := string(output)
 
 	if solveCtx.Err() == context.DeadlineExceeded {
 		return nil, ErrTimeout
 	}
 
-	if err != nil {
-		// Check if it's a "no solution" case by examining output
-		if strings.Contains(string(output), "Did not solve") ||
-			strings.Contains(string(output), "Failed to solve") {
-			return &Result{Solved: false}, nil
-		}
-		return nil, fmt.Errorf("%w: %v\nOutput: %s", ErrDockerFailed, err, string(output))
-	}
+	// Note: solve-field returns non-zero exit code even when it simply didn't find a solution
+	// We can't rely on exit codes or error messages to distinguish "no solution" from actual errors
+	// Instead, we check for the presence of output files (.wcs, .solved) as the source of truth
 
 	solveTime := time.Since(startTime).Seconds()
 
-	// Parse WCS file
+	// Parse WCS file - this is the definitive indicator of solve success
 	wcsPath := filepath.Join(tempDir, strings.TrimSuffix(imageFilename, filepath.Ext(imageFilename))+".wcs")
-	result, err := ParseWCSFile(wcsPath)
-	if err != nil {
-		// If WCS file doesn't exist, image wasn't solved
-		if os.IsNotExist(err) {
-			return &Result{Solved: false}, nil
+	result, parseErr := ParseWCSFile(wcsPath)
+
+	if parseErr != nil {
+		// If WCS file doesn't exist, image wasn't solved (not an error, just no solution found)
+		if errors.Is(parseErr, os.ErrNotExist) {
+			result = &Result{
+				Solved:    false,
+				SolveTime: solveTime,
+				RawOutput: rawOutput, // Always include output when solve fails for debugging
+			}
+			return result, nil
 		}
-		return nil, err
+		// Other parsing errors are actual failures - include output for diagnostics
+		return nil, fmt.Errorf("%w\nSolve output: %s", parseErr, rawOutput)
 	}
 
+	// Successfully parsed WCS file - solve succeeded
 	result.SolveTime = solveTime
+
+	// Include raw output only if verbose mode enabled (success case doesn't need it by default)
+	if opts.Verbose {
+		result.RawOutput = rawOutput
+	}
 
 	// Collect output files
 	result.OutputFiles = c.collectOutputFiles(tempDir, imageFilename)

@@ -40,6 +40,10 @@ type Result struct {
 
 	// SolveTime is the duration of the solve operation.
 	SolveTime float64 // seconds
+
+	// RawOutput contains the raw stdout/stderr from solve-field.
+	// Only populated when Verbose option is enabled.
+	RawOutput string
 }
 
 var (
