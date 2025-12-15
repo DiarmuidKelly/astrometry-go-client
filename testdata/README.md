@@ -26,7 +26,7 @@ This directory contains real astronomical images and ground truth data for integ
 - **Location**: `/images/IMG_2820_labelled.jpeg`
 - **Purpose**: Annotated version showing identified stars and celestial objects from Astrometry.net nova
 
-### Test Metadata (located in `pkg/solver/testdata/`)
+### Test Metadata (located in `testdata/`)
 
 #### wcs.fits
 - **Source**: Reference WCS solution file from astrometry.net web
@@ -87,7 +87,7 @@ docker run --rm \
 # Field size in degrees
 # Rotation angle (up is X degrees E of N)
 
-# 4. Update pkg/solver/testdata/ground_truth.json with new values
+# 4. Update testdata/ground_truth.json with new values
 ```
 
 ## Notes

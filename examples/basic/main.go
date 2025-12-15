@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/DiarmuidKelly/Astrometry-Go-Client/pkg/solver"
+	solver "github.com/DiarmuidKelly/astrometry-go-client"
 )
 
 func main() {

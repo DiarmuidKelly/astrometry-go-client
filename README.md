@@ -1,9 +1,9 @@
 # Astrometry Go Client
 
-![Version](https://img.shields.io/github/v/release/DiarmuidKelly/Astrometry-Go-Client?label=version)
+![Version](https://img.shields.io/github/v/release/DiarmuidKelly/astrometry-go-client?label=version)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
-![Go Version](https://img.shields.io/github/go-mod/go-version/DiarmuidKelly/Astrometry-Go-Client)
-[![Go Report Card](https://goreportcard.com/badge/github.com/DiarmuidKelly/Astrometry-Go-Client)](https://goreportcard.com/report/github.com/DiarmuidKelly/Astrometry-Go-Client)
+![Go Version](https://img.shields.io/github/go-mod/go-version/DiarmuidKelly/astrometry-go-client)
+[![Go Report Card](https://goreportcard.com/badge/github.com/DiarmuidKelly/astrometry-go-client)](https://goreportcard.com/report/github.com/DiarmuidKelly/astrometry-go-client)
 
 **Offline astrometric plate-solving for Go** - Solve astronomical images locally without internet access using the [astrometry-dockerised-solver](https://github.com/DiarmuidKelly/astrometry-dockerised-solver) Docker container. Complete privacy and control over your data with no dependency on external services.
 
@@ -47,8 +47,8 @@ Unlike cloud-based plate-solving services, this library runs entirely on your lo
 
 ```bash
 # Clone the repository (for development)
-git clone https://github.com/DiarmuidKelly/Astrometry-Go-Client.git
-cd Astrometry-Go-Client
+git clone https://github.com/DiarmuidKelly/astrometry-go-client.git
+cd astrometry-go-client
 
 # Download all index files (~350MB)
 ./scripts/download-indexes.sh
@@ -270,20 +270,20 @@ For a complete REST API server with web interface, see the [Astrometry API Serve
 ### As a Library
 
 ```bash
-go get github.com/DiarmuidKelly/Astrometry-Go-Client
+go get github.com/DiarmuidKelly/astrometry-go-client
 ```
 
 ### CLI Tool
 
 ```bash
-go install github.com/DiarmuidKelly/Astrometry-Go-Client/cmd/astro-cli@latest
+go install github.com/DiarmuidKelly/astrometry-go-client/cmd/astro-cli@latest
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/DiarmuidKelly/Astrometry-Go-Client.git
-cd Astrometry-Go-Client
+git clone https://github.com/DiarmuidKelly/astrometry-go-client.git
+cd astrometry-go-client
 make install
 ```
 
@@ -299,7 +299,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/DiarmuidKelly/Astrometry-Go-Client/pkg/solver"
+    solver "github.com/DiarmuidKelly/astrometry-go-client"
 )
 
 func main() {
@@ -516,7 +516,7 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 - [Astrometry Dockerised Solver](https://github.com/DiarmuidKelly/astrometry-dockerised-solver) - Maintained solver-only Docker image
 - [Changelog](CHANGELOG.md)
 - [Contributing Guide](CONTRIBUTING.md)
-- [Issues](https://github.com/DiarmuidKelly/Astrometry-Go-Client/issues)
+- [Issues](https://github.com/DiarmuidKelly/astrometry-go-client/issues)
 - [Astrometry.net](http://astrometry.net/)
 - [dam90/astrometry](https://github.com/dam90/astrometry) - Alternative Docker image with web UI
 
