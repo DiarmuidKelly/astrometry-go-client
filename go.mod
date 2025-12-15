@@ -1,4 +1,4 @@
-module github.com/DiarmuidKelly/Astrometry-Go-Client
+module github.com/DiarmuidKelly/astrometry-go-client
 
 go 1.24.5
 

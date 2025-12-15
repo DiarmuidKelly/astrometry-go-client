@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/DiarmuidKelly/Astrometry-Go-Client/pkg/solver"
+	solver "github.com/DiarmuidKelly/astrometry-go-client"
 )
 
 const version = "0.1.0"

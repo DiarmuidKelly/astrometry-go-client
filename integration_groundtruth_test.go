@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package solver
+package client
 
 import (
 	"context"
@@ -143,7 +143,7 @@ func TestM42WithGroundTruth(t *testing.T) {
 
 	// Load test image and ground truth
 	testImageFilename := "IMG_2820.JPG"
-	testImagePath := filepath.Join("../../images", testImageFilename)
+	testImagePath := filepath.Join("images", testImageFilename)
 
 	if _, err := os.Stat(testImagePath); os.IsNotExist(err) {
 		t.Fatalf("Test image not found: %s", testImagePath)
@@ -271,7 +271,7 @@ func TestConvertedJPEGWithGroundTruth(t *testing.T) {
 
 	// Test converted JPEG file
 	convertedFilename := "IMG_2820-converted.jpg"
-	convertedPath := filepath.Join("../../images", convertedFilename)
+	convertedPath := filepath.Join("images", convertedFilename)
 
 	if _, err := os.Stat(convertedPath); os.IsNotExist(err) {
 		t.Skipf("Converted test image not found: %s", convertedPath)

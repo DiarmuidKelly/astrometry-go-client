@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package solver
+package client
 
 import (
 	"context"

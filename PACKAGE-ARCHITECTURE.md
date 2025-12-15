@@ -1,4 +1,4 @@
-# Astrometry-Go-Client: Scope & Architecture
+# astrometry-go-client: Scope & Architecture
 
 ## What This Package IS
 
@@ -6,40 +6,94 @@
 
 - **Core purpose:** Wrap the astrometry.net Docker solver with a clean Go API
 - **Target users:** Go developers who need plate-solving in their projects
-- **Deployment:** Imported as a Go module (`go get github.com/DiarmuidKelly/Astrometry-Go-Client`)
+- **Deployment:** Imported as a Go module (`go get github.com/DiarmuidKelly/astrometry-go-client`)
 
-## Package Structure
+## Package Structure (Desired State)
 
-**Idiomatic flat Go layout:**
+**Unified client pattern with internal implementation:**
 
 ```
-Astrometry-Go-Client/
-├── solver.go                # Client, Solve(), SolveBytes()
-├── solver_test.go           # Unit tests for solver
-├── result.go                # Result struct, WCS parsing
-├── result_test.go           # Unit tests for WCS parsing
-├── options.go               # SolveOptions configuration
-├── annotate.go              # OPTIONAL: Annotation support (plot-constellations, etc)
-├── annotate_test.go         # Unit tests for annotation
-├── errors.go                # Error types for caller decisions
+astrometry-go-client/
+├── client.go                # Unified Client, NewClient()
+├── solver.go                # Type re-exports (SolveOptions, Result)
+├── config.go                # Public ClientConfig
+├── errors.go                # Public error types
+├── annotate.go              # OPTIONAL: Annotation support (Annotate() method)
 ├── integration_test.go      # Integration tests with Docker
 ├── testdata/                # Test fixtures (images, WCS files)
-├── fov/                     # Camera sensor detection utilities
-│   ├── fov.go
-│   ├── fov_test.go
-│   ├── image.go
-│   ├── image_test.go
-│   └── sensors.go
-└── cmd/
-    └── astro-cli/           # CLI tool (supported, not just reference)
+├── internal/
+│   └── solver/              # Core plate-solving implementation
+│       ├── solver.go        # Solver logic
+│       ├── result.go        # WCS parsing
+│       ├── options.go       # SolveOptions
+│       └── solver_test.go   # Unit tests
+├── fov/                     # FOV & sensor utilities (public subpackage)
+│   ├── fov.go               # FOV calculations
+│   ├── image.go             # EXIF extraction
+│   ├── indexes.go           # Index recommendations
+│   ├── constants.go         # Sensor database
+│   └── *_test.go            # Tests
+├── cmd/
+│   └── astro-cli/           # CLI tool (supported)
+│       └── main.go
+└── examples/
+    └── basic/               # Usage examples
         └── main.go
 ```
 
-**Import path:** `github.com/DiarmuidKelly/Astrometry-Go-Client`
+**Import paths:**
+- Main API: `github.com/DiarmuidKelly/astrometry-go-client/client`
+- FOV utilities: `github.com/DiarmuidKelly/astrometry-go-client/fov`
 
-## What This Package DOES
+## Current Implementation Status
+
+**✅ Completed (as of recent refactor):**
+
+The package structure has been reorganized with a clean separation of concerns:
+
+```
+astrometry-go-client/
+├── client.go                # Public API: Client wrapper
+├── solver.go                # Type re-exports (SolveOptions, Result)
+├── config.go                # Public ClientConfig
+├── errors.go                # Public error types
+├── internal/solver/         # Core solving implementation (internal)
+│   ├── solver.go            # Solver logic, Solve(), SolveBytes()
+│   ├── result.go            # WCS parsing
+│   └── options.go           # SolveOptions
+├── fov/                     # FOV utilities (public, fully implemented)
+│   ├── fov.go               # FOV calculations
+│   ├── image.go             # EXIF extraction
+│   ├── indexes.go           # Index recommendations
+│   └── constants.go         # Sensor database
+├── cmd/astro-cli/           # CLI tool
+└── examples/basic/          # Usage examples
+```
+
+**Import paths (current):**
+- Main API: `github.com/DiarmuidKelly/astrometry-go-client/client`
+- FOV utilities: `github.com/DiarmuidKelly/astrometry-go-client/fov`
+
+**Implemented features:**
+- ✅ Unified `client.Client` wrapping internal solver
+- ✅ `Solve()` and `SolveBytes()` methods
+- ✅ Docker run/exec modes
+- ✅ Full WCS parsing with Result struct
+- ✅ FOV calculation from EXIF
+- ✅ Index file recommendations
+- ✅ Sensor database with common cameras
+- ✅ CLI tool
+- ✅ Integration tests with ground truth validation
+
+**🚧 Future additions (planned):**
+- ⏳ Optional annotation support (`Annotate()` method)
+- ⏳ Additional astrometry.net tool wrappers (image2xy, wcs-xy2rd, wcs-rd2xy, etc.)
+- ⏳ Additional utility methods (see "Future methods" comment in client.go)
+
+## What This Package DOES (Desired State)
 
 ### Core Functionality
+
 1. **Solve single images** via `client.Solve(ctx, imagePath, options)`
 2. **Parse WCS results** into structured Go types
 3. **Support both Docker modes** (run/exec)
@@ -53,6 +107,7 @@ Astrometry-Go-Client/
 7. **Provide sensible defaults** for common use cases
 
 ### Design Principles
+
 - **Minimal dependencies** (only `goexif` for sensor detection)
 - **No external services** (100% offline)
 - **Stateless API** (each Solve() call is independent)
@@ -63,6 +118,7 @@ Astrometry-Go-Client/
 ## What This Package DOES NOT DO
 
 ### Out of Scope
+
 ❌ **Built-in batch processing** - Call `Solve()` in your own loop (see examples)
 ❌ **Custom image processing** - Only expose what Docker image provides
 ❌ **HTTP API server** - See separate Astrometry-API-Server repo
@@ -77,6 +133,7 @@ Astrometry-Go-Client/
 ## API Surface (Keep Minimal)
 
 ### Public Types
+
 ```go
 // Core client
 type Client struct { ... }
@@ -134,6 +191,7 @@ func (c *Client) Annotate(ctx context.Context, result *Result, imagePath string,
 ```
 
 ### Helper Package (Optional Extras)
+
 ```go
 // fov/ sub-package - Camera sensor utilities
 func DetectSensorFromEXIF(imagePath string) (*SensorInfo, error)
@@ -151,23 +209,27 @@ type SensorInfo struct {
 **`cmd/astro-cli` is a supported tool, not just a reference implementation**
 
 ### Purpose
+
 - ✅ **Quick testing** - Fast manual verification without writing Go code
 - ✅ **Bash scripting** - Enables batch processing via shell scripts
 - ✅ **Documentation by example** - Shows how to use the library
 - ✅ **Dogfooding** - Forces us to use our own API
 
 ### Design Principles
+
 - Keep core functions available via CLI flags
 - Simple flag parsing → library call → JSON output
 - No CLI-specific logic (all logic in library)
 - Flags mirror library API where possible
 
 ### Usage Guidance
+
 - ✅ **Use for:** Quick testing, bash scripts, manual solves
 - ⚠️ **Acceptable for:** Simple automation, cron jobs
 - ❌ **Don't use for:** Complex production pipelines (import the library instead)
 
 ### Batch Processing with CLI
+
 Users can write bash scripts that call `astro-cli` in a loop:
 
 ```bash
@@ -181,11 +243,13 @@ See `examples/batch/` for patterns.
 ## Example Implementations
 
 ### In This Repo
+
 - **CLI tool** (`cmd/astro-cli`) - Supported tool for testing and scripting
 - **Example scripts** (`examples/batch/`) - Bash/Python patterns for batch processing
 - **Library examples** (`examples/basic/`) - Go code showing API usage
 
 ### Separate Repos (User-Built)
+
 - **Astrometry-API-Server** - HTTP API wrapper (separate repo, maintained by us)
 - **Custom pipelines** - Users import library in their Go code
 - **Web UIs** - Users build on top of API server
@@ -193,6 +257,7 @@ See `examples/batch/` for patterns.
 ## Maintenance Philosophy
 
 ### What Gets Added
+
 ✅ Bug fixes in WCS parsing
 ✅ Support for new Docker image versions
 ✅ Better error messages
@@ -202,6 +267,7 @@ See `examples/batch/` for patterns.
 ✅ CLI features that mirror library capabilities
 
 ### What Gets Rejected
+
 ❌ "Add built-in batch processing with progress bars"
 ❌ "Add web UI"
 ❌ "Add database support"
@@ -214,6 +280,7 @@ See `examples/batch/` for patterns.
 ## Success Criteria
 
 This package succeeds when:
+
 1. Other Go projects can `import` and use it easily
 2. API is stable and rarely changes
 3. No feature creep - stays focused on solving
@@ -223,6 +290,7 @@ This package succeeds when:
 ## File Boundaries
 
 ### Keep in Go-Client
+
 - Core solving logic (`solver.go`, `result.go`, `options.go`)
 - WCS parsing
 - Docker integration (run/exec modes)
@@ -235,6 +303,7 @@ This package succeeds when:
 - Library documentation
 
 ### Push to Users/Other Repos
+
 - HTTP servers (see Astrometry-API-Server)
 - Complex batch orchestration (users write their own)
 - File watching/monitoring
@@ -248,6 +317,7 @@ This package succeeds when:
 **Stance:** Supported via examples, not built-in.
 
 ### Patterns
+
 1. **Bash script with CLI:** Call `astro-cli` in a loop
 2. **Go with goroutine pool:** Call `Solve()` concurrently
 3. **Python wrapper:** Subprocess calls to CLI
@@ -256,6 +326,7 @@ This package succeeds when:
 All patterns documented in `examples/batch/`.
 
 **Why no built-in batch method:**
+
 - Overhead of multiple `Solve()` calls is minimal
 - Users have different needs (parallelism, error handling, progress)
 - Keeps library focused and flexible

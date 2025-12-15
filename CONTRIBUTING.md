@@ -6,8 +6,8 @@ Thank you for contributing! This project uses automated PR-based releases with s
 
 ```bash
 # 1. Fork and clone
-git clone https://github.com/YOUR_USERNAME/Astrometry-Go-Client.git
-cd Astrometry-Go-Client
+git clone https://github.com/YOUR_USERNAME/astrometry-go-client.git
+cd astrometry-go-client
 
 # 2. Create feature branch
 git checkout -b feat/my-feature
@@ -27,14 +27,15 @@ git push origin feat/my-feature
 
 Your PR title determines the version bump:
 
-| PR Title | Version Change | Use Case |
-|----------|----------------|----------|
-| `[MAJOR] description` | 0.1.0 → 1.0.0 | Breaking changes |
-| `[MINOR] description` | 0.1.0 → 0.2.0 | New features |
-| `[PATCH] description` | 0.1.0 → 0.1.1 | Bug fixes |
-| `[SKIP] description` | No release | Docs/chore only |
+| PR Title              | Version Change | Use Case         |
+| --------------------- | -------------- | ---------------- |
+| `[MAJOR] description` | 0.1.0 → 1.0.0  | Breaking changes |
+| `[MINOR] description` | 0.1.0 → 0.2.0  | New features     |
+| `[PATCH] description` | 0.1.0 → 0.1.1  | Bug fixes        |
+| `[SKIP] description`  | No release     | Docs/chore only  |
 
 **Or use conventional commits:**
+
 - `feat: description` → MINOR
 - `fix: description` → PATCH
 - `docs: description` → SKIP
@@ -107,6 +108,7 @@ Before submitting PR:
 ## PR Review Process
 
 Your PR will be merged if:
+
 - ✅ Code follows Go best practices
 - ✅ Commits follow conventional format
 - ✅ All tests pass
@@ -202,6 +204,6 @@ When reporting bugs, include:
 
 - Check [README.md](README.md) for project overview
 - See [.github/BRANCH_PROTECTION.md](.github/BRANCH_PROTECTION.md) for branch rules
-- Open an [issue](https://github.com/DiarmuidKelly/Astrometry-Go-Client/issues) for questions
+- Open an [issue](https://github.com/DiarmuidKelly/astrometry-go-client/issues) for questions
 
 Thank you for contributing!
