@@ -37,6 +37,13 @@ type ClientConfig struct {
 	// ContainerName is the name of the running container to exec commands in.
 	// Only used when UseDockerExec is true.
 	ContainerName string
+
+	// LocalExec runs the solve-field binary directly on PATH instead of via
+	// Docker. Intended for running inside an image built FROM the solver, where
+	// the astrometry binaries and index configuration are already present.
+	// Takes precedence over UseDockerExec when both are set.
+	// Default: false
+	LocalExec bool
 }
 
 // DefaultClientConfig returns a ClientConfig with sensible defaults.

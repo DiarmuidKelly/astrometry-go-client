@@ -95,6 +95,7 @@ func NewClient(config *ClientConfig) (*Client, error) {
 		Timeout:       config.Timeout,
 		UseDockerExec: config.UseDockerExec,
 		ContainerName: config.ContainerName,
+		LocalExec:     config.LocalExec,
 	}
 
 	// Create solver client

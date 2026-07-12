@@ -142,30 +142,35 @@ func (c *Client) Solve(ctx context.Context, imagePath string, opts *SolveOptions
 	// Build solve-field command arguments
 	args := c.buildSolveArgs(imageFilename, tempDir, opts)
 
-	// Build Docker command based on mode
-	var dockerArgs []string
-	if c.config.UseDockerExec {
+	// Create context with timeout
+	solveCtx, cancel := context.WithTimeout(ctx, c.config.Timeout)
+	defer cancel()
+
+	// Build the solve command based on execution mode
+	var cmd *exec.Cmd
+	switch {
+	case c.config.LocalExec:
+		// Local mode: invoke solve-field directly on PATH (no Docker).
+		// args[0] is "solve-field"; the remainder are its arguments.
+		cmd = exec.CommandContext(solveCtx, args[0], args[1:]...)
+	case c.config.UseDockerExec:
 		// Docker exec mode: use existing container
-		dockerArgs = []string{"exec", c.config.ContainerName}
-		dockerArgs = append(dockerArgs, args...)
-	} else {
+		dockerArgs := append([]string{"exec", c.config.ContainerName}, args...)
+		cmd = exec.CommandContext(solveCtx, "docker", dockerArgs...)
+	default:
 		// Docker run mode: spawn new container
-		dockerArgs = []string{
+		dockerArgs := []string{
 			"run", "--rm",
 			"-v", fmt.Sprintf("%s:/data", tempDir),
 			"-v", fmt.Sprintf("%s:/usr/local/astrometry/data", absIndexPath),
 			c.config.DockerImage,
 		}
 		dockerArgs = append(dockerArgs, args...)
+		cmd = exec.CommandContext(solveCtx, "docker", dockerArgs...)
 	}
 
-	// Create context with timeout
-	solveCtx, cancel := context.WithTimeout(ctx, c.config.Timeout)
-	defer cancel()
-
-	// Execute Docker command
+	// Execute the solve command
 	startTime := time.Now()
-	cmd := exec.CommandContext(solveCtx, "docker", dockerArgs...)
 	output, _ := cmd.CombinedOutput() //nolint:errcheck // Ignore exit code - we check for .wcs file existence instead
 	rawOutput := string(output)
 
@@ -283,8 +288,8 @@ func (c *Client) buildSolveArgs(imageFilename, tempDir string, opts *SolveOption
 
 	// Determine paths based on execution mode
 	var workDir, imagePath string
-	if c.config.UseDockerExec {
-		// In exec mode, use the actual shared volume path
+	if c.config.UseDockerExec || c.config.LocalExec {
+		// exec and local modes operate on the real host filesystem paths
 		workDir = tempDir
 		imagePath = filepath.Join(tempDir, imageFilename)
 	} else {
