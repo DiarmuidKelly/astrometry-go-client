@@ -96,6 +96,13 @@ type SolveOptions struct {
 	// When true, temp directory and all solve output files are not deleted.
 	// Default: false
 	KeepTempFiles bool
+
+	// Annotate requests an annotated overlay of the solved field. When true,
+	// solve-field's plotting is enabled (the --no-plots flag is omitted) and,
+	// on a successful solve, the resulting <base>-ngc.png is read back into
+	// Result.AnnotatedImage. Overrides NoPlots.
+	// Default: false
+	Annotate bool
 }
 
 // DefaultClientConfig returns a ClientConfig with sensible defaults.

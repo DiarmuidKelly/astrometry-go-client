@@ -213,6 +213,19 @@ func (c *Client) Solve(ctx context.Context, imagePath string, opts *SolveOptions
 	// Collect output files
 	result.OutputFiles = c.collectOutputFiles(tempDir, imageFilename)
 
+	// Read the annotated overlay back into the result before the temp dir is
+	// cleaned up, so callers get the bytes without needing KeepTempFiles.
+	if opts.Annotate {
+		baseName := strings.TrimSuffix(imageFilename, filepath.Ext(imageFilename))
+		ngcPath := filepath.Join(tempDir, baseName+"-ngc.png")
+		if data, readErr := os.ReadFile(ngcPath); readErr == nil {
+			result.AnnotatedImage = data
+			result.AnnotatedFormat = "png"
+		} else {
+			log.Printf("warning: annotation requested but %s not found: %v", ngcPath, readErr)
+		}
+	}
+
 	return result, nil
 }
 
@@ -262,8 +275,9 @@ func (c *Client) buildSolveArgs(imageFilename, tempDir string, opts *SolveOption
 		args = append(args, "--depth", fmt.Sprintf("%d-%d", opts.DepthLow, opts.DepthHigh))
 	}
 
-	// No plots
-	if opts.NoPlots {
+	// No plots. Suppressed when Annotate is requested, since the annotated
+	// overlay (<base>-ngc.png) is a plotting side-effect of solve-field.
+	if opts.NoPlots && !opts.Annotate {
 		args = append(args, "--no-plots")
 	}
 
