@@ -38,6 +38,16 @@ type Result struct {
 	// OutputFiles contains paths to generated output files (.wcs, .corr, etc.).
 	OutputFiles []string
 
+	// AnnotatedImage contains the bytes of the annotated overlay (<base>-ngc.png),
+	// in the same orientation as the input image. Populated only when the Annotate
+	// option is set and the solve succeeded. Read before temp-file cleanup so it
+	// survives even when KeepTempFiles is false.
+	AnnotatedImage []byte
+
+	// AnnotatedFormat is the image format of AnnotatedImage (e.g. "png").
+	// Empty when no annotated image was produced.
+	AnnotatedFormat string
+
 	// SolveTime is the duration of the solve operation.
 	SolveTime float64 // seconds
 

@@ -263,3 +263,22 @@ func TestBuildSolveArgs_LocalExec(t *testing.T) {
 		t.Errorf("expected --dir %q in args, got: %s", tempDir, argsStr)
 	}
 }
+
+func TestBuildSolveArgs_Annotate(t *testing.T) {
+	tempDir := t.TempDir()
+	client, _ := NewClient(&ClientConfig{IndexPath: tempDir})
+
+	// Default options suppress plots.
+	off := client.buildSolveArgs("test.jpg", tempDir, DefaultSolveOptions())
+	if !strings.Contains(strings.Join(off, " "), "--no-plots") {
+		t.Errorf("expected --no-plots when Annotate is off, got: %v", off)
+	}
+
+	// Annotate must re-enable plotting even though NoPlots defaults to true.
+	opts := DefaultSolveOptions()
+	opts.Annotate = true
+	on := client.buildSolveArgs("test.jpg", tempDir, opts)
+	if strings.Contains(strings.Join(on, " "), "--no-plots") {
+		t.Errorf("expected plots enabled (no --no-plots) when Annotate is on, got: %v", on)
+	}
+}
