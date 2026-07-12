@@ -228,3 +228,38 @@ func TestBuildSolveArgs(t *testing.T) {
 		t.Error("expected image path argument")
 	}
 }
+
+func TestBuildSolveArgs_LocalExec(t *testing.T) {
+	tempDir := t.TempDir()
+	config := &ClientConfig{
+		IndexPath: tempDir,
+		LocalExec: true,
+	}
+
+	client, _ := NewClient(config)
+
+	opts := DefaultSolveOptions()
+	args := client.buildSolveArgs("test.jpg", tempDir, opts)
+
+	// The command must begin with the solve-field binary so local mode can
+	// invoke it directly without a Docker wrapper.
+	if len(args) == 0 || args[0] != "solve-field" {
+		t.Fatalf("expected first arg to be solve-field, got %v", args)
+	}
+
+	argsStr := strings.Join(args, " ")
+
+	// Local mode operates on real filesystem paths, not the /data mount.
+	if strings.Contains(argsStr, "/data/") {
+		t.Errorf("local mode should not use /data mount paths, got: %s", argsStr)
+	}
+
+	wantImage := filepath.Join(tempDir, "test.jpg")
+	if !strings.Contains(argsStr, wantImage) {
+		t.Errorf("expected real image path %q in args, got: %s", wantImage, argsStr)
+	}
+
+	if !strings.Contains(argsStr, "--dir "+tempDir) {
+		t.Errorf("expected --dir %q in args, got: %s", tempDir, argsStr)
+	}
+}
