@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0] - 2026-07-12
+
+### Changes
+
+- Release created from PR merge
+
+
 ## [1.4.0] - 2026-07-12
 
 ### Changes
